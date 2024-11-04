@@ -4,108 +4,197 @@
 #include <string.h>
 
 typedef struct Osoba {
-	char ime[100];
-	char prezime[100];
-	int god;
+	char ime[50];
+	char prezime[50];
+	int godinaRodjenja;
 	struct Osoba* next;
 } Osoba;
 
-Osoba* Kreiraj(char* ime, char* prezime, int god) {
-	Osoba* NovaOsoba = (Osoba*)malloc(sizeof(Osoba));
-	if (!NovaOsoba) {
-		printf("Greska pri alokaciji memorije\n");
-		return NULL;
+// Funkcija za kreiranje nove osobe
+Osoba* kreirajOsobu(char* ime, char* prezime, int godina) {
+	Osoba* novaOsoba = (Osoba*)malloc(sizeof(Osoba));
+	if (!novaOsoba) return NULL;
+
+	strcpy(novaOsoba->ime, ime);
+	strcpy(novaOsoba->prezime, prezime);
+	novaOsoba->godinaRodjenja = godina;
+	novaOsoba->next = NULL;
+	return novaOsoba;
+}
+
+// A. Dodavanje elementa na početak liste
+void dodajNaPocetak(Osoba** head, Osoba* novaOsoba) {
+	novaOsoba->next = *head;
+	*head = novaOsoba;
+}
+
+// B. Ispis liste
+void ispisListe(Osoba* head) {
+	Osoba* trenutna = head;
+	while (trenutna) {
+		printf("Ime: %s, Prezime: %s, Godina rođenja: %d\n", trenutna->ime, trenutna->prezime, trenutna->godinaRodjenja);
+		trenutna = trenutna->next;
 	}
-	strcpy(NovaOsoba->ime, ime);
-	strcpy(NovaOsoba->prezime, prezime);
-	NovaOsoba->god = god;
-	NovaOsoba->next = NULL;
-	return NovaOsoba;
 }
 
-void DodajNaPocetak(Osoba** head, char* ime, char* prezime, int god) {
-	Osoba* NovaO = Kreiraj(ime, prezime, god);
-	NovaO->next = *head;
-	*head = NovaO;
-}
-
-void DodajNaKraj(Osoba** head, char* ime, char* prezime, int god) {
-	Osoba* NovaO = Kreiraj(ime, prezime, god);
+// C. Dodavanje elementa na kraj liste
+void dodajNaKraj(Osoba** head, Osoba* novaOsoba) {
 	if (*head == NULL) {
-		*head = NovaO;
-		return;
+		*head = novaOsoba;
 	}
-	Osoba* trenutna = *head;
-	while (trenutna->next != NULL) {
-		trenutna = trenutna->next;
+	else {
+		Osoba* trenutna = *head;
+		while (trenutna->next) {
+			trenutna = trenutna->next;
+		}
+		trenutna->next = novaOsoba;
 	}
-	trenutna->next = NovaO;
 }
 
-void Ispis(Osoba* head) {
+// D. Pronalaženje elementa u listi po prezimenu
+Osoba* pronadjiPoPrezimenu(Osoba* head, char* prezime) {
 	Osoba* trenutna = head;
-	while (trenutna != NULL) {
-		printf("%s %s %d\n", trenutna->ime, trenutna->prezime, trenutna->god);
+	while (trenutna) {
+		if (strcmp(trenutna->prezime, prezime) == 0) {
+			return trenutna;
+		}
 		trenutna = trenutna->next;
 	}
+	return NULL;
 }
 
-// A. Funkcija za dodavanje elementa iza određene osobe
-void DodajIza(Osoba* head, char* prezimeTrazeno, char* ime, char* prezime, int god) {
-	Osoba* trenutna = head;
-	while (trenutna != NULL && strcmp(trenutna->prezime, prezimeTrazeno) != 0) {
-		trenutna = trenutna->next;
-	}
-	if (trenutna == NULL) {
-		printf("Osoba s prezimenom %s nije pronadena.\n", prezimeTrazeno);
-		return;
-	}
-	Osoba* NovaO = Kreiraj(ime, prezime, god);
-	NovaO->next = trenutna->next;
-	trenutna->next = NovaO;
-}
+// E. Brisanje određenog elementa iz liste
+void brisiElement(Osoba** head, char* prezime) {
+	Osoba* trenutna = *head, * prethodna = NULL;
 
-// B. Funkcija za dodavanje elementa ispred određene osobe
-void DodajIspred(Osoba** head, char* prezimeTrazeno, char* ime, char* prezime, int god) {
-	Osoba* trenutna = *head;
-	Osoba* prethodna = NULL;
-
-	while (trenutna != NULL && strcmp(trenutna->prezime, prezimeTrazeno) != 0) {
+	while (trenutna && strcmp(trenutna->prezime, prezime) != 0) {
 		prethodna = trenutna;
 		trenutna = trenutna->next;
 	}
 
-	if (trenutna == NULL) {
-		printf("Osoba s prezimenom %s nije pronadena.\n", prezimeTrazeno);
-		return;
-	}
-
-	Osoba* NovaO = Kreiraj(ime, prezime, god);
-	if (prethodna == NULL) { // Ako je tražena osoba prvi element
-		NovaO->next = *head;
-		*head = NovaO;
-	}
-	else {
-		NovaO->next = trenutna;
-		prethodna->next = NovaO;
+	if (trenutna) {
+		if (prethodna) {
+			prethodna->next = trenutna->next;
+		}
+		else {
+			*head = trenutna->next;
+		}
+		free(trenutna);
 	}
 }
 
+// 3.A. Dodavanje elementa iza određenog elementa
+void dodajIzaElementa(Osoba* head, char* prezime, Osoba* novaOsoba) {
+	Osoba* trenutna = pronadjiPoPrezimenu(head, prezime);
+	if (trenutna) {
+		novaOsoba->next = trenutna->next;
+		trenutna->next = novaOsoba;
+	}
+}
+
+// 3.B. Dodavanje elementa ispred određenog elementa
+void dodajIspredElementa(Osoba** head, char* prezime, Osoba* novaOsoba) {
+	if (*head == NULL || strcmp((*head)->prezime, prezime) == 0) {
+		dodajNaPocetak(head, novaOsoba);
+	}
+	else {
+		Osoba* trenutna = *head;
+		while (trenutna->next && strcmp(trenutna->next->prezime, prezime) != 0) {
+			trenutna = trenutna->next;
+		}
+		if (trenutna->next) {
+			novaOsoba->next = trenutna->next;
+			trenutna->next = novaOsoba;
+		}
+	}
+}
+
+// 3.C. Sortiranje liste po prezimenima osoba
+void sortirajListu(Osoba** head) {
+	if (*head == NULL) return;
+
+	Osoba* i, * j;
+	for (i = *head; i != NULL; i = i->next) {
+		for (j = i->next; j != NULL; j = j->next) {
+			if (strcmp(i->prezime, j->prezime) > 0) {
+				char tempIme[50], tempPrezime[50];
+				int tempGodina;
+
+				strcpy(tempIme, i->ime);
+				strcpy(tempPrezime, i->prezime);
+				tempGodina = i->godinaRodjenja;
+
+				strcpy(i->ime, j->ime);
+				strcpy(i->prezime, j->prezime);
+				i->godinaRodjenja = j->godinaRodjenja;
+
+				strcpy(j->ime, tempIme);
+				strcpy(j->prezime, tempPrezime);
+				j->godinaRodjenja = tempGodina;
+			}
+		}
+	}
+}
+
+// 3.D. Upisivanje liste u datoteku
+void upisiUFile(Osoba* head, const char* filename) {
+	FILE* file = fopen(filename, "w");
+	if (!file) return;
+
+	Osoba* trenutna = head;
+	while (trenutna) {
+		fprintf(file, "%s %s %d\n", trenutna->ime, trenutna->prezime, trenutna->godinaRodjenja);
+		trenutna = trenutna->next;
+	}
+	fclose(file);
+}
+
+// 3.E. Čitanje liste iz datoteke
+void citajIzFile(Osoba** head, const char* filename) {
+	FILE* file = fopen(filename, "r");
+	if (!file) return;
+
+	char ime[50], prezime[50];
+	int godina;
+	while (fscanf(file, "%s %s %d", ime, prezime, &godina) != EOF) {
+		Osoba* novaOsoba = kreirajOsobu(ime, prezime, godina);
+		dodajNaKraj(head, novaOsoba);
+	}
+	fclose(file);
+}
+
+// Glavni program za testiranje
 int main() {
 	Osoba* head = NULL;
 
-	DodajNaPocetak(&head, "Ivo", "Ivic", 1990);
-	DodajNaKraj(&head, "Ana", "Anic", 1985);
-	printf("Pocetna lista:\n");
-	Ispis(head);
+	dodajNaPocetak(&head, kreirajOsobu("Ana", "Anic", 1990));
+	dodajNaKraj(&head, kreirajOsobu("Marko", "Markic", 1985));
+	dodajNaKraj(&head, kreirajOsobu("Ivana", "Ivic", 1992));
 
-	printf("\nDodavanje iza odredene osobe:\n");
-	DodajIza(head, "Ivic", "Marko", "Maric", 1995);
-	Ispis(head);
+	printf("Ispis liste:\n");
+	ispisListe(head);
 
-	printf("\nDodavanje ispred odredene osobe:\n");
-	DodajIspred(&head, "Anic", "Petar", "Petrovic", 1975);
-	Ispis(head);
+	Osoba* pronadjena = pronadjiPoPrezimenu(head, "Markic");
+	if (pronadjena) printf("Pronadena osoba: %s %s\n", pronadjena->ime, pronadjena->prezime);
+
+	dodajIzaElementa(head, "Anic", kreirajOsobu("Petar", "Petrovic", 1988));
+	dodajIspredElementa(&head, "Ivic", kreirajOsobu("Luka", "Lukic", 1991));
+
+	printf("\nLista nakon dodavanja iza i ispred:\n");
+	ispisListe(head);
+
+	sortirajListu(&head);
+	printf("\nLista nakon sortiranja:\n");
+	ispisListe(head);
+
+	upisiUFile(head, "osobe.txt");
+
+	// Oslobađanje memorije
+	while (head) {
+		Osoba* temp = head;
+		head = head->next;
+		free(temp);
+	}
 
 	return 0;
 }
