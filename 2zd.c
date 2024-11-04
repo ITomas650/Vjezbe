@@ -68,33 +68,44 @@ void PronadiPrezime(Osoba* head, char* prezime){
 
 
 
-}
-void ObrisiElement(Osoba** head, char* prezime){
-    Osoba* trenutna =*head;
-    if(strcmp(trenutna->prezime,prezime)==0){
-            
-            
-            
-        }
-    while(trenutna!=NULL){
-       
-        if(strcmp(trenutna->prezime,prezime)==0){
-            printf("Element pronaden");
-            
-            
-        }
-        trenutna=trenutna->next;
-    }
 
+void ObrisiElement(Osoba** head, char* prezime) {
+	Osoba* trenutna = *head;
+	Osoba* prethodna = NULL;
+	if (trenutna == NULL) {
+		printf("lista je prazna\n");
+		return;
+	}
+    if(strcmp(trenutna->prezime,prezime) == 0){
+		*head = trenutna->next;
+		printf("obrisan prvi");
+		return;
+            
+            
+            
+        }
+    while(trenutna!=NULL && strcmp(trenutna->prezime, prezime)!=0){
+		prethodna = trenutna;
+		trenutna = trenutna->next;
+         
+    }
+	if (trenutna == NULL) {
+		printf("nije pronaden\n");
+		return;
+	
+	}
+	prethodna->next = trenutna->next;
+	free(trenutna);
 }
 
 
 int main(){
     Osoba* head=NULL;
-    	DodajOsobuNaPocetak(&head,"I","T",2005);
-        DodajNaKraj(&head,"I2","T2",2005);
+    	DodajOsobuNaPocetak(&head,"I","T2",2005);
+        DodajNaKraj(&head,"I2","T",2005);
         Ispis(head);
     	PronadiPrezime(head,"T");
         PronadiPrezime(head,"T2");
         ObrisiElement(&head, "T");
+		Ispis(head);
 }           
